@@ -105,3 +105,152 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize swipe functionality for each portfolio section
+  initSwipeSections();
+  
+  function initSwipeSections() {
+    const portfolioSections = document.querySelectorAll('#portfolio h3');
+    
+    portfolioSections.forEach(section => {
+      const sectionType = section.textContent.trim().toLowerCase();
+      const originalGrid = section.nextElementSibling;
+      
+      // Skip if not one of our target sections
+      if (!['posters', 'reels', 'stories'].includes(sectionType)) return;
+      
+      // Create swipe container
+      const swipeContainer = document.createElement('div');
+      swipeContainer.className = 'portfolio-swipe-container';
+      
+      // Create track
+      const swipeTrack = document.createElement('div');
+      swipeTrack.className = 'portfolio-swipe-track';
+      
+      // Clone items from original grid
+      const items = originalGrid.querySelectorAll('.portfolio-item');
+      items.forEach(item => {
+        const clone = item.cloneNode(true);
+        swipeTrack.appendChild(clone);
+      });
+      
+      // Add track to container
+      swipeContainer.appendChild(swipeTrack);
+      
+      // Create dots navigation
+      const dotsContainer = document.createElement('div');
+      dotsContainer.className = 'swipe-dots';
+      
+      for (let i = 0; i < items.length; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'swipe-dot' + (i === 0 ? ' active' : '');
+        dot.dataset.index = i;
+        dotsContainer.appendChild(dot);
+      }
+      
+      // Add dots to container
+      swipeContainer.appendChild(dotsContainer);
+      
+      // Insert swipe container after the section heading
+      section.parentNode.insertBefore(swipeContainer, originalGrid);
+      
+      // Initialize swipe functionality
+      setupSwipe(swipeTrack, dotsContainer);
+    });
+  }
+  
+  function setupSwipe(track, dotsContainer) {
+    let startX = 0;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
+    let currentIndex = 0;
+    let isDragging = false;
+    const dots = dotsContainer.querySelectorAll('.swipe-dot');
+    const itemCount = track.children.length;
+    
+    // Touch events
+    track.addEventListener('touchstart', touchStart);
+    track.addEventListener('touchmove', touchMove);
+    track.addEventListener('touchend', touchEnd);
+    
+    // Mouse events for testing on desktop
+    track.addEventListener('mousedown', touchStart);
+    track.addEventListener('mousemove', touchMove);
+    track.addEventListener('mouseup', touchEnd);
+    track.addEventListener('mouseleave', touchEnd);
+    
+    // Dot click events
+    dots.forEach(dot => {
+      dot.addEventListener('click', function() {
+        const targetIndex = parseInt(this.dataset.index);
+        goToIndex(targetIndex);
+      });
+    });
+    
+    function touchStart(e) {
+      if (e.type === 'mousedown') {
+        startX = e.clientX;
+      } else {
+        startX = e.touches[0].clientX;
+      }
+      
+      isDragging = true;
+      track.style.transition = 'none';
+    }
+    
+    function touchMove(e) {
+      if (!isDragging) return;
+      
+      let currentX;
+      if (e.type === 'mousemove') {
+        currentX = e.clientX;
+      } else {
+        currentX = e.touches[0].clientX;
+      }
+      
+      const diff = currentX - startX;
+      currentTranslate = prevTranslate + diff;
+      
+      // Apply the translation
+      track.style.transform = `translateX(${currentTranslate}px)`;
+    }
+    
+    function touchEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      // Calculate movement direction and distance
+      const movedBy = currentTranslate - prevTranslate;
+      
+      // Only move to next/prev if moved enough (threshold of 50px)
+      if (Math.abs(movedBy) > 50) {
+        if (movedBy < 0 && currentIndex < itemCount - 1) {
+          currentIndex++;
+        } else if (movedBy > 0 && currentIndex > 0) {
+          currentIndex--;
+        }
+      }
+      
+      // Update position
+      goToIndex(currentIndex);
+    }
+    
+    function goToIndex(index) {
+      currentIndex = index;
+      prevTranslate = -(currentIndex * 100);
+      track.style.transition = 'transform 0.3s ease-out';
+      track.style.transform = `translateX(${prevTranslate}%)`;
+      
+      // Update active dot
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentIndex);
+      });
+    }
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      goToIndex(currentIndex);
+    });
+  }
+});

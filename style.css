@@ -573,3 +573,67 @@ padding: 18px 36px;
   }
 }
 
+
+/* Portfolio Swipe Container Styles */
+.portfolio-swipe-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.portfolio-swipe-track {
+  display: flex;
+  transition: transform 0.3s ease-out;
+  will-change: transform;
+  touch-action: pan-y;
+}
+
+.portfolio-item {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* Navigation Dots */
+.swipe-dots {
+  display: flex;
+  justify-content: center;
+  padding: 15px 0;
+}
+
+.swipe-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  margin: 0 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.swipe-dot.active {
+  background: #333;
+}
+
+/* Hide original grid on mobile */
+@media (max-width: 768px) {
+  .portfolio-grid {
+    display: none;
+  }
+  
+  .portfolio-swipe-container {
+    display: block;
+  }
+}
+
+/* Show original grid on desktop */
+@media (min-width: 769px) {
+  .portfolio-swipe-container {
+    display: none;
+  }
+  
+  .portfolio-grid {
+    display: grid;
+  }
+}
